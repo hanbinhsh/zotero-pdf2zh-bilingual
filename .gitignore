@@ -1,0 +1,31 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Node.js
+node_modules/
+.npm-cache/
+
+# Environment
+.env
+.env.local
+
+# Build output
+dist/
+build/
+logs/
+*.xpi
+*.zip
+
+# TypeScript
+tsconfig.tsbuildinfo
+
+# Scaffold
+.scaffold/
+
+# Local temp files
+*.log
+tmp/
+temp/
