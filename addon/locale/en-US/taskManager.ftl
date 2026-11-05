@@ -1,21 +1,19 @@
-taskManager-title = PDF2ZH Translation Tasks
+taskManager-title = PDF2ZH Translation Task Manager
 refresh = 
     .label = Refresh
     .tooltiptext = Refresh translation task list
 cancel =
-    .label = Cancel
+    .label = Cancel Task
     .tooltiptext = Cancel pending tasks
 view-pdf =
-    .label = View Translation Result
-    .tooltiptext = Open the translated PDF
+    .label = View Result
+    .tooltiptext = Open translated PDF (double-clicking rows also supported)
 retry =
     .label = Retry
-    .tooltiptext = Retry when failed
+    .tooltiptext = Retry failed tasks
 feedback =
-    .label = Issue Feedback
-    .tooltiptext = Feedback current task issue
+    .label = Feedback
+    .tooltiptext = Open GitHub to submit issues or suggestions
 clearQueue =
     .label = Clear Queue
-    .tooltiptext = Clear all tasks in the queue
-
-
+    .tooltiptext = Clear all task entries from the list and queue

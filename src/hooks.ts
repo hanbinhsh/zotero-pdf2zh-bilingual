@@ -1,4 +1,4 @@
-import { getString, initLocale } from "./utils/locale";
+import { initLocale } from "./utils/locale";
 import {
   registerPrefs,
   registerPrefsScripts,
@@ -65,41 +65,12 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
   // Create ztoolkit for every window
   addon.data.ztoolkit = createZToolkit();
   ztoolkit.basicOptions.log.disableConsole = false;
-  // @ts-ignore This is a moz feature
-  win.MozXULElement.insertFTLIfNeeded(
-    `${addon.data.config.addonRef}-mainWindow.ftl`,
-  );
-
-  const popupWin = new ztoolkit.ProgressWindow(addon.data.config.addonName, {
-    closeOnClick: true,
-    closeTime: -1,
-  })
-    .createLine({
-      text: getString("startup-begin"),
-      type: "default",
-      progress: 0,
-    })
-    .show();
-
-  await Zotero.Promise.delay(1000);
-  popupWin.changeLine({
-    progress: 30,
-    text: `[30%] ${getString("startup-begin")}`,
-  });
 
   registerMenu(win);
 
   registerWindowMenu(win);
 
   registerToolbar();
-
-  await Zotero.Promise.delay(1000);
-
-  popupWin.changeLine({
-    progress: 100,
-    text: `[100%] ${getString("startup-finish")}`,
-  });
-  popupWin.startCloseTimer(5000);
 }
 
 async function onMainWindowUnload(win: Window): Promise<void> {
@@ -122,8 +93,7 @@ function onShutdown(): void {
 }
 
 /**
- * This function is just an example of dispatcher for Notify events.
- * Any operations should be placed in a function to keep this function clear.
+ * Dispatcher for Notify events.
  */
 async function onNotify(
   event: string,
@@ -144,31 +114,27 @@ async function onNotify(
       const isPDFAttachment = item.isPDFAttachment();
 
       if (item.isRegularItem()) {
-        // ✅ 情况①：解析成功，生成新条目（主条目）
-        ztoolkit.log("【情况①】创建了主条目:", item.getField("title"));
+        ztoolkit.log("创建了主条目:", item.getField("title"));
         newIds.push(item.id);
       } else if (isPDFAttachment) {
         const parentID = item.parentID;
         ztoolkit.log("item.attachmentFilename", item.attachmentFilename);
         const shouldSkip = shouldSkipAttachment(item);
         if (shouldSkip) {
-          ztoolkit.log("【情况④】跳过翻译结果附件:", item.attachmentFilename);
+          ztoolkit.log("跳过翻译结果附件:", item.attachmentFilename);
           continue;
         }
         if (parentID) {
-          // 📎 情况③：添加到已有条目下的附件
           ztoolkit.log(
-            "【情况③】添加附件到已有条目:",
+            "添加附件到已有条目:",
             item.attachmentFilename,
             "，父项ID:",
             parentID,
           );
-          //
           newIds.push(item.id);
         } else {
-          // ❌ 情况②：无法识别，仅上传为独立附件
           ztoolkit.log(
-            "【情况②】独立附件（无法识别的PDF）暂不支持:",
+            "独立附件（无法识别的PDF）暂不支持:",
             item.attachmentFilename,
           );
         }
@@ -181,8 +147,7 @@ async function onNotify(
 }
 
 /**
- * This function is just an example of dispatcher for Preference UI events.
- * Any operations should be placed in a function to keep this function clear.
+ * Dispatcher for Preference UI events.
  * @param type event type
  * @param data event data
  */
@@ -219,10 +184,6 @@ function onTranslate() {
 function onViewTranslationTasks() {
   showTaskManager();
 }
-
-// Add your hooks here. For element click, etc.
-// Keep in mind hooks only do dispatch. Don't add code that does real jobs in hooks.
-// Otherwise the code would be hard to read and maintain.
 
 export default {
   onStartup,

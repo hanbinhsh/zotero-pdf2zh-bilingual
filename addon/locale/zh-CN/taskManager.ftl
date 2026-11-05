@@ -1,21 +1,19 @@
-taskManager-title = PDF2ZH 翻译任务
+taskManager-title = PDF2ZH 翻译任务管理器
 refresh = 
     .label = 刷新
     .tooltiptext = 刷新翻译任务列表
 cancel =
-    .label = 取消
-    .tooltiptext = 取消未开始的任务
+    .label = 取消任务
+    .tooltiptext = 取消选中的等待中任务
 view-pdf =
     .label = 查看翻译结果
-    .tooltiptext = 打开翻译完成的 PDF
+    .tooltiptext = 打开翻译完成的 PDF（支持双击列表项）
 retry =
-    .label = 重试
-    .tooltiptext = 失败后重试
+    .label = 重试任务
+    .tooltiptext = 对失败的任务重新发起翻译
 feedback =
     .label = 问题反馈
-    .tooltiptext = 反馈当前任务的问题
+    .tooltiptext = 打开 GitHub 反馈问题或建议
 clearQueue =
     .label = 清空队列
-    .tooltiptext = 清空队列中的任务，注意这只是在 Zotero 插件中清除，实际可能还在翻译，可以在 项目 Issue 页面中查看
-
-
+    .tooltiptext = 清空翻译任务列表与队列记录

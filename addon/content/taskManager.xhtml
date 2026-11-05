@@ -67,7 +67,7 @@
         user-select: none;
       }
       .viewport {
-        margin: 0 5px 0 5px;
+        margin: 0;
         overflow-y: auto;
       }
       .viewport-container {
@@ -92,6 +92,18 @@
       #manager-table {
         height: 100%;
       }
+      .footer-container {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 8px 12px;
+        gap: 8px;
+        background: var(--material-background);
+        border-top: 1px solid var(--material-border, rgba(128, 128, 128, 0.2));
+      }
+      .footer-container button {
+        padding: 4px 10px;
+      }
     </style>
   </head>
   <body class="zotero-window">
@@ -102,17 +114,15 @@
     </div>
     <div
       class="footer-container"
-      style="justify-content: flex-start; padding: 10px; gap: 8px"
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     >
       <button id="refresh" data-l10n-id="refresh"></button>
-      <button id="cancel" data-l10n-id="cancel"></button>
-      <button id="feedback" data-l10n-id="feedback"></button>
       <button id="view-pdf" data-l10n-id="view-pdf"></button>
       <button id="retry" data-l10n-id="retry"></button>
+      <button id="cancel" data-l10n-id="cancel"></button>
       <button id="clearQueue" data-l10n-id="clearQueue"></button>
+      <div style="flex: 1"></div>
+      <button id="feedback" data-l10n-id="feedback"></button>
     </div>
   </body>
 </html>
-
-

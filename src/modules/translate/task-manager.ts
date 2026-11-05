@@ -8,13 +8,13 @@ import { Language } from "../language/types";
 import { getLanguageName } from "../language";
 import { showDialog } from "../../utils/dialog";
 import { startQueueProcessing } from "./task";
-const PROJECT_REPO_URL = "https://github.com/your-github-user/zotero-pdf2zh-bilingual";
+
+const PROJECT_REPO_URL = "https://github.com/hanbinhsh/zotero-pdf2zh-bilingual";
 
 /**
  * 显示翻译任务列表的弹窗
  */
 export async function showTaskManager() {
-  // 创建对话框
   if (isWindowAlive(addon.data.task.window)) {
     addon.data.task.window?.focus();
     refresh();
@@ -34,8 +34,6 @@ export async function showTaskManager() {
       .setContainerId("table-container")
       .setProp({
         id: "manager-table",
-        // Do not use setLocale, as it modifies the Zotero.Intl.strings
-        // Set locales directly to columns
         columns: [
           {
             dataKey: "parentItemTitle",
@@ -98,19 +96,38 @@ export async function showTaskManager() {
           targetLanguage:
             getLanguageName(task.targetLanguage, Zotero.locale as Language) ||
             "",
-          translateMode: (translateModes.find((m) => m.value === task.translateMode)?.label ? getString(translateModes.find((m) => m.value === task.translateMode)!.label) : ""),
+          translateMode: translateModes.find(
+            (m) => m.value === task.translateMode,
+          )?.label
+            ? getString(
+                translateModes.find((m) => m.value === task.translateMode)!
+                  .label,
+              )
+            : "",
           stage: getStageText(task.stage) || "",
           error: task.error || task.debugInfo || "-",
           resultAttachmentId: task.resultAttachmentId?.toString() || "",
         };
       })
-      .setProp("onActivate", () => true)
+      .setProp("onActivate", (_e: MouseEvent) => {
+        const tasks = getSelectedTasks();
+        if (tasks.length > 0 && tasks[0]?.resultAttachmentId) {
+          const resultAttachment = Zotero.Items.get(
+            tasks[0].resultAttachmentId,
+          );
+          if (resultAttachment) {
+            Zotero.Reader.open(resultAttachment.id);
+          }
+        }
+        return true;
+      })
       .setProp(
         "getRowString",
         (index) =>
           addon.data.task.translationTaskList[index].parentItemTitle || "",
       )
       .render();
+
     const refreshButton = win.document.querySelector(
       "#refresh",
     ) as HTMLButtonElement;
@@ -129,13 +146,15 @@ export async function showTaskManager() {
     const clearButton = win.document.querySelector(
       "#clearQueue",
     ) as HTMLButtonElement;
-    clearButton.addEventListener("click", (ev) => {
+
+    clearButton?.addEventListener("click", () => {
       addon.data.task.translationGlobalQueue = [];
       addon.data.task.translationTaskList = [];
       saveTranslationData();
       refresh();
     });
-    viewPdfButton.addEventListener("click", (ev) => {
+
+    viewPdfButton?.addEventListener("click", () => {
       const tasks = getSelectedTasks();
       if (tasks.length > 0) {
         const task = tasks[0];
@@ -156,17 +175,15 @@ export async function showTaskManager() {
       }
     });
 
-    retryButton.addEventListener("click", (ev) => {
+    retryButton?.addEventListener("click", () => {
       const tasks = getSelectedTasks();
       if (tasks.length > 0) {
         const task = tasks[0];
         if (task.status === "failed") {
-          // Update task status to queued
           updateTaskInList(task.attachmentId, {
             error: "",
           });
 
-          // Add back to the global queue if not already there
           if (
             !addon.data.task.translationGlobalQueue.some(
               (t) => t.attachmentId === task.attachmentId,
@@ -193,25 +210,16 @@ export async function showTaskManager() {
       }
     });
 
-    feedbackButton.addEventListener("click", (ev) => {
-      const tasks = getSelectedTasks();
-      if (tasks.length > 0) {
-        const task = tasks[0];
-        Zotero.launchURL(
-          `${PROJECT_REPO_URL}/issues`,
-        );
-      } else {
-        showDialog({
-          title: getString("task-select-tip"),
-        });
-      }
+    // Feedback opens issues directly without requiring selected item
+    feedbackButton?.addEventListener("click", () => {
+      Zotero.launchURL(`${PROJECT_REPO_URL}/issues`);
     });
 
-    refreshButton.addEventListener("click", (ev) => {
+    refreshButton?.addEventListener("click", () => {
       refresh();
     });
 
-    cancelButton.addEventListener("click", (ev) => {
+    cancelButton?.addEventListener("click", () => {
       const tasks = getSelectedTasks();
       if (tasks.length > 0) {
         const task = tasks[0];
@@ -232,6 +240,7 @@ export async function showTaskManager() {
         });
       }
     });
+
     createWindowBoundInterval(
       () => {
         refresh();
@@ -260,7 +269,6 @@ async function refresh() {
   await updateTable();
 }
 
-// Helper function to update a task in the translationTaskList
 export function updateTaskInList(
   attachmentId: number,
   updates: {
@@ -275,7 +283,6 @@ export function updateTaskInList(
 ) {
   if (!addon.data.task.translationTaskList) return;
 
-  // Find the task from the end of the array (most recent task) - simple approach
   let taskIndex = -1;
   for (let i = addon.data.task.translationTaskList.length - 1; i >= 0; i--) {
     if (addon.data.task.translationTaskList[i].attachmentId === attachmentId) {
@@ -291,7 +298,6 @@ export function updateTaskInList(
     };
   }
 
-  // Call saveTranslationData after updating the task list
   saveTranslationData();
 }
 
@@ -319,13 +325,6 @@ function cancelTask(task: TranslationTaskData) {
   saveTranslationData();
 }
 
-/**
- * Creates a recurring interval that automatically cleans up when the window is closed
- * @param callback Function to execute at each interval
- * @param delay Time in milliseconds between executions
- * @param window Window to attach the interval to
- * @returns Interval ID that can be used with clearInterval if needed
- */
 export function createWindowBoundInterval(
   callback: () => void,
   delay: number,
@@ -333,7 +332,6 @@ export function createWindowBoundInterval(
 ): ReturnType<typeof setInterval> {
   const intervalId = setInterval(callback, delay);
 
-  // Add unload listener to clean up the interval when the window closes
   window.addEventListener(
     "unload",
     () => {
@@ -348,7 +346,6 @@ export function createWindowBoundInterval(
 function getStatusText(status?: string) {
   const statusMap: Record<string, string> = {
     queued: getString("task-status-queued"),
-    uploading: getString("task-status-uploading"),
     translating: getString("task-status-translating"),
     success: getString("task-status-success"),
     failed: getString("task-status-failed"),
@@ -357,39 +354,17 @@ function getStatusText(status?: string) {
 
   if (!status) return "";
 
-  return statusMap[status];
+  return statusMap[status] || status;
 }
 
 function getStageText(stage?: string) {
   if (!stage) return "";
-  const translationMap: { [key: string]: string } = {
+  const translationMap: Record<string, string> = {
     queued: getString("task-stage-queued"),
-    uploading: getString("task-stage-uploading"),
-    downloading: getString("task-stage-downloading"),
+    "parse-pdf": getString("task-stage-parse-pdf"),
+    TranslateParagraphs: getString("task-stage-TranslateParagraphs"),
     completed: getString("task-stage-completed"),
-    "Parse PDF and Create Intermediate Representation": getString(
-      "task-stage-parse-pdf",
-    ),
-    DetectScannedFile: getString("task-stage-DetectScannedFile"),
-    "Parse Page Layout": getString("task-stage-ParseLayout"),
-    "Parse Paragraphs": getString("task-stage-ParseParagraphs"),
-    "Parse Formulas and Styles": getString("task-stage-ParseFormulasAndStyles"),
-    "Remove Char Descent": getString("task-stage-RemoveCharDescent"),
-    "Translate Paragraphs": getString("task-stage-TranslateParagraphs"),
-    Typesetting: getString("task-stage-Typesetting"),
-    "Add Fonts": getString("task-stage-AddFonts"),
-    "Generate drawing instructions": getString(
-      "task-stage-GenerateDrawingInstructions",
-    ),
-    "Subset font": getString("task-stage-SubsetFont"),
-    "Save PDF": getString("task-stage-SavePDF"),
-    "prepare file download": getString("task-stage-prepareFileDownload"),
-    "Prepare File Download": getString("task-stage-SavePDF"),
-    "Parse Table": getString("task-stage-ParseTable"),
-    "Waiting in line": getString("task-stage-WaitingInLine"),
-    "Create Task": getString("task-stage-CreateTask"),
   };
 
   return translationMap[stage] || stage;
 }
-

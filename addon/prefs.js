@@ -3,10 +3,7 @@ pref("targetLanguage", "zh-CN");
 pref("translateMode", "dual");
 pref("localApiBaseURL", "http://127.0.0.1:11434/v1");
 pref("localApiKey", "");
-pref(
-  "localPdfMathTranslatePythonPath",
-  "./pdf2zh/.venv/Scripts/python.exe",
-);
+pref("localPdfMathTranslatePythonPath", "./pdf2zh/.venv/Scripts/python.exe");
 pref("localPdfMathTranslateThread", 1);
 pref("localPdfMathTranslateSourceLanguage", "auto");
 pref("localBilingualLayout", "side-by-side");
@@ -19,5 +16,3 @@ pref("autoTranslate", false);
 pref("autoOpenPDF", true);
 pref("dualMode", "lort");
 pref("enableShortcuts", true);
-
-

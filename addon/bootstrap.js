@@ -1,12 +1,5 @@
 /* eslint-disable no-undef */
 
-/**
- * Most of this code is from Zotero team's official Make It Red example[1]
- * or the Zotero 7 documentation[2].
- * [1] https://github.com/zotero/make-it-red
- * [2] https://www.zotero.org/support/dev/zotero_7_for_developers
- */
-
 var chromeHandle;
 
 function install(data, reason) {}
@@ -84,59 +77,6 @@ async function startup({ id, version, resourceURI, rootURI }, reason) {
       }
     };
   }
-
-  // Polyfill for navigator required by pdf.js
-  if (typeof ctx.navigator === "undefined") {
-    ctx.navigator = {
-      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/121.0",
-      platform: "Win32",
-      language: "en-US",
-      languages: ["en-US"],
-      hardwareConcurrency: 8,
-      deviceMemory: 8,
-      maxTouchPoints: 0,
-      vendor: "",
-      onLine: true,
-    };
-  }
-
-  // Polyfill for GlobalWorkerOptions required by pdf.js
-  if (typeof ctx.GlobalWorkerOptions === "undefined") {
-    ctx.GlobalWorkerOptions = {
-      workerSrc: "", // Set to empty since we disable workers with disableWorker: true
-    };
-  }
-  
-  // Force GlobalWorkerOptions to persist by using Object.defineProperty
-  try {
-    Object.defineProperty(ctx, "GlobalWorkerOptions", {
-      value: ctx.GlobalWorkerOptions,
-      writable: true,
-      configurable: true,
-      enumerable: true,
-    });
-  } catch (e) {
-    // Ignore if defineProperty fails
-  }
-
-  // Additional polyfills for pdf.js compatibility
-  if (typeof ctx.TextEncoder === "undefined") {
-    ctx.TextEncoder = TextEncoder;
-  }
-  if (typeof ctx.TextDecoder === "undefined") {
-    ctx.TextDecoder = TextDecoder;
-  }
-  if (typeof ctx.ArrayBuffer === "undefined") {
-    ctx.ArrayBuffer = ArrayBuffer;
-  }
-  if (typeof ctx.Uint8Array === "undefined") {
-    ctx.Uint8Array = Uint8Array;
-  }
-  if (typeof ctx.Uint32Array === "undefined") {
-    ctx.Uint32Array = Uint32Array;
-  }
-  // Note: Do NOT polyfill document/window - let Zotero provide them
-  // PDF.js will use disableWorker: true so it doesn't need full DOM
 
   Services.scriptloader.loadSubScript(
     `${rootURI}/content/scripts/__addonRef__.js`,

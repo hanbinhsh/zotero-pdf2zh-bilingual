@@ -72,7 +72,9 @@ export async function addTasksToQueue(ids?: number[]) {
   if (!addon.data.task.translationTaskList) {
     addon.data.task.translationTaskList = [];
   }
-  const clonedTasks = tasksToQueue.map((task) => JSON.parse(JSON.stringify(task)));
+  const clonedTasks = tasksToQueue.map((task) =>
+    JSON.parse(JSON.stringify(task)),
+  );
   addon.data.task.translationTaskList.push(...clonedTasks);
 
   saveTranslationData();
@@ -308,12 +310,3 @@ async function processNextItem() {
     Zotero.Promise.delay(0).then(processNextItem);
   }
 }
-
-
-
-
-
-
-
-
-

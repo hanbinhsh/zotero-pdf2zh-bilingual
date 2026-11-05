@@ -1,160 +1,282 @@
 <linkset>
   <html:link rel="localization" href="__addonRef__-preferences.ftl" />
 </linkset>
-<vbox onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', { window })">
-  <groupbox>
-    <label><html:h2 data-l10n-id="pref-translate-settings"></html:h2></label>
-    <hbox align="center">
-      <label data-l10n-id="pref-target-language"></label>
+<vbox
+  onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', { window })"
+  style="padding: 10px"
+>
+  <groupbox style="margin-bottom: 12px; padding: 12px">
+    <label>
+      <html:h2
+        data-l10n-id="pref-translate-settings"
+        style="margin: 0 0 10px 0; font-weight: 600"
+      ></html:h2>
+    </label>
+
+    <hbox align="center" style="margin-bottom: 10px">
+      <label
+        data-l10n-id="pref-target-language"
+        style="min-width: 140px"
+      ></label>
       <box id="__addonRef__-target-language-placeholder"></box>
     </hbox>
-    <hbox align="center" style="margin-top: 12px">
-      <label data-l10n-id="pref-source-language"></label>
+
+    <hbox align="center" style="margin-bottom: 10px">
+      <label
+        data-l10n-id="pref-source-language"
+        style="min-width: 140px"
+      ></label>
       <box id="__addonRef__-source-language-placeholder"></box>
     </hbox>
-    <hbox align="center" style="margin-top: 12px">
-      <label data-l10n-id="pref-translate-mode"></label>
+
+    <hbox align="center" style="margin-bottom: 10px">
+      <label
+        data-l10n-id="pref-translate-mode"
+        style="min-width: 140px"
+      ></label>
       <box id="__addonRef__-translate-mode-placeholder"></box>
     </hbox>
-    <hbox align="center" style="margin-top: 12px">
-      <label data-l10n-id="pref-dual-mode"></label>
+
+    <hbox align="center" style="margin-bottom: 10px">
+      <label data-l10n-id="pref-dual-mode" style="min-width: 140px"></label>
       <box id="__addonRef__-dual-mode-placeholder"></box>
     </hbox>
-    <hbox align="center" style="margin-top: 12px">
-      <label data-l10n-id="pref-local-bilingual-layout"></label>
+
+    <hbox align="center" style="margin-bottom: 6px">
+      <label
+        data-l10n-id="pref-local-bilingual-layout"
+        style="min-width: 140px"
+      ></label>
       <box id="__addonRef__-local-bilingual-layout-placeholder"></box>
     </hbox>
-    <description data-l10n-id="pref-local-bilingual-layout-description"></description>
-    <vbox style="margin-top: 12px">
+    <description
+      data-l10n-id="pref-local-bilingual-layout-description"
+      style="margin: 0 0 12px 145px; opacity: 0.75; font-size: 0.9em"
+    ></description>
+
+    <vbox style="margin-top: 8px; gap: 8px">
       <checkbox
         id="zotero-prefpane-__addonRef__-enable-auto-open-pdf"
         native="true"
         preference="autoOpenPDF"
         data-l10n-id="pref-enable-autoOpenPDF"
       />
+      <checkbox
+        id="zotero-prefpane-__addonRef__-enable-shortcuts"
+        native="true"
+        preference="enableShortcuts"
+        data-l10n-id="pref-enable-shortcuts"
+      />
     </vbox>
   </groupbox>
 
-  <groupbox>
-    <label><html:h2 data-l10n-id="pref-translate-settings-advance"></html:h2></label>
+  <groupbox style="margin-bottom: 12px; padding: 12px">
+    <label>
+      <html:h2
+        data-l10n-id="pref-translate-settings-advance"
+        style="margin: 0 0 10px 0; font-weight: 600"
+      ></html:h2>
+    </label>
 
-    <vbox style="margin-top: 12px">
-      <p data-l10n-id="pref-local-mode-description" />
-    </vbox>
+    <description
+      data-l10n-id="pref-local-mode-description"
+      style="margin-bottom: 12px; opacity: 0.85; font-size: 0.92em"
+    />
 
-    <vbox style="margin-top: 12px">
-      <button
-        id="zotero-prefpane-__addonRef__-test-button"
-        data-l10n-id="pref-test-button"
-      ></button>
-    </vbox>
-
-    <vbox style="margin-top: 12px">
+    <vbox style="margin-bottom: 12px">
       <html:label
         for="zotero-prefpane-__addonRef__-localPdfMathTranslatePythonPath"
         data-l10n-id="pref-local-python-path"
+        style="font-weight: 500; margin-bottom: 4px"
       ></html:label>
-      <html:input
-        type="text"
-        id="zotero-prefpane-__addonRef__-localPdfMathTranslatePythonPath"
-        preference="localPdfMathTranslatePythonPath"
-      ></html:input>
-      <p data-l10n-id="pref-local-python-path-description" />
+      <hbox align="center" style="gap: 6px">
+        <html:input
+          type="text"
+          id="zotero-prefpane-__addonRef__-localPdfMathTranslatePythonPath"
+          preference="localPdfMathTranslatePythonPath"
+          style="flex: 1; padding: 4px"
+        ></html:input>
+        <button
+          id="zotero-prefpane-__addonRef__-browse-python-button"
+          data-l10n-id="pref-browse-python-button"
+          style="padding: 2px 10px"
+        ></button>
+      </hbox>
+      <description
+        data-l10n-id="pref-local-python-path-description"
+        style="margin-top: 4px; opacity: 0.75; font-size: 0.88em"
+      />
     </vbox>
 
-    <vbox style="margin-top: 12px">
-      <html:label
-        for="zotero-prefpane-__addonRef__-localPdfMathTranslateThread"
-        data-l10n-id="pref-local-pdfmathtranslate-thread"
-      ></html:label>
-      <html:input
-        type="number"
-        id="zotero-prefpane-__addonRef__-localPdfMathTranslateThread"
-        preference="localPdfMathTranslateThread"
-      ></html:input>
-    </vbox>
-
-    <vbox style="margin-top: 12px">
+    <vbox style="margin-bottom: 12px">
       <html:label
         for="zotero-prefpane-__addonRef__-localApiBaseURL"
         data-l10n-id="pref-local-api-base-url"
-      ></html:label>
+        style="font-weight: 500; margin-bottom: 4px"
+      >
+      </html:label>
       <html:input
         type="text"
         id="zotero-prefpane-__addonRef__-localApiBaseURL"
         preference="localApiBaseURL"
-      ></html:input>
+        style="padding: 4px"
+      >
+      </html:input>
+      <description
+        data-l10n-id="pref-local-api-base-url-description"
+        style="margin-top: 4px; opacity: 0.75; font-size: 0.88em"
+      />
     </vbox>
 
-    <vbox style="margin-top: 12px">
+    <vbox style="margin-bottom: 12px">
       <html:label
         for="zotero-prefpane-__addonRef__-localApiKey"
         data-l10n-id="pref-local-api-key"
+        style="font-weight: 500; margin-bottom: 4px"
       ></html:label>
       <html:input
         type="password"
         id="zotero-prefpane-__addonRef__-localApiKey"
         preference="localApiKey"
+        style="padding: 4px"
       ></html:input>
+      <description
+        data-l10n-id="pref-local-api-key-description"
+        style="margin-top: 4px; opacity: 0.75; font-size: 0.88em"
+      />
     </vbox>
 
-    <vbox style="margin-top: 12px">
-      <html:label
-        for="zotero-prefpane-__addonRef__-localTextModel"
-        data-l10n-id="pref-local-text-model"
-      ></html:label>
-      <html:input
-        type="text"
-        id="zotero-prefpane-__addonRef__-localTextModel"
-        preference="localTextModel"
-      ></html:input>
-    </vbox>
+    <hbox style="margin-bottom: 12px; gap: 16px">
+      <vbox style="flex: 2">
+        <html:label
+          for="zotero-prefpane-__addonRef__-localTextModel"
+          data-l10n-id="pref-local-text-model"
+          style="font-weight: 500; margin-bottom: 4px"
+        ></html:label>
+        <html:input
+          type="text"
+          id="zotero-prefpane-__addonRef__-localTextModel"
+          preference="localTextModel"
+          style="padding: 4px"
+        ></html:input>
+      </vbox>
+      <vbox style="flex: 1">
+        <html:label
+          for="zotero-prefpane-__addonRef__-localPdfMathTranslateThread"
+          data-l10n-id="pref-local-pdfmathtranslate-thread"
+          style="font-weight: 500; margin-bottom: 4px"
+        ></html:label>
+        <html:input
+          type="number"
+          min="1"
+          max="16"
+          id="zotero-prefpane-__addonRef__-localPdfMathTranslateThread"
+          preference="localPdfMathTranslateThread"
+          style="padding: 4px"
+        ></html:input>
+      </vbox>
+    </hbox>
 
-    <vbox style="margin-top: 12px">
-      <html:label
-        for="zotero-prefpane-__addonRef__-localTextPromptTemplate"
-        data-l10n-id="pref-local-text-prompt"
-      ></html:label>
-      <html:textarea
-        id="zotero-prefpane-__addonRef__-localTextPromptTemplate"
-        preference="localTextPromptTemplate"
-        rows="8"
-        cols="50"
-      ></html:textarea>
-      <hbox align="center" style="margin-top: 6px; gap: 6px">
-        <button
-          id="zotero-prefpane-__addonRef__-reset-localTextPromptTemplate"
-          data-l10n-id="pref-local-text-prompt-reset"
-        ></button>
-      </hbox>
-      <hbox align="center" style="margin-top: 6px; gap: 6px">
-        <button class="__addonRef__-placeholder-button" data-target="zotero-prefpane-__addonRef__-localTextPromptTemplate" data-token="{{targetLanguage}}">{{targetLanguage}}</button>
-        <button class="__addonRef__-placeholder-button" data-target="zotero-prefpane-__addonRef__-localTextPromptTemplate" data-token="{{sourceLanguage}}">{{sourceLanguage}}</button>
-        <button class="__addonRef__-placeholder-button" data-target="zotero-prefpane-__addonRef__-localTextPromptTemplate" data-token="{{text}}">{{text}}</button>
-      </hbox>
-      <p data-l10n-id="pref-local-prompt-placeholders" />
-    </vbox>
+    <hbox align="center" style="margin-top: 6px; gap: 10px">
+      <button
+        id="zotero-prefpane-__addonRef__-test-button"
+        data-l10n-id="pref-test-button"
+        style="padding: 3px 14px; font-weight: 500"
+      ></button>
+      <label
+        id="zotero-prefpane-__addonRef__-test-status"
+        style="font-size: 0.9em; opacity: 0.85"
+      ></label>
+    </hbox>
   </groupbox>
 
-  <groupbox>
-    <label><html:h2 data-l10n-id="pref-about"></html:h2></label>
+  <groupbox style="margin-bottom: 12px; padding: 12px">
+    <label>
+      <html:h2
+        data-l10n-id="pref-local-text-prompt"
+        style="margin: 0 0 10px 0; font-weight: 600"
+      ></html:h2>
+    </label>
+
+    <html:textarea
+      id="zotero-prefpane-__addonRef__-localTextPromptTemplate"
+      preference="localTextPromptTemplate"
+      rows="6"
+      style="
+        width: 100%;
+        font-family: monospace;
+        font-size: 0.92em;
+        padding: 6px;
+      "
+    ></html:textarea>
+
+    <hbox
+      align="center"
+      style="margin-top: 8px; justify-content: space-between"
+    >
+      <hbox align="center" style="gap: 6px">
+        <label
+          data-l10n-id="pref-placeholder-insert"
+          style="font-size: 0.9em; opacity: 0.8"
+        ></label>
+        <button
+          class="__addonRef__-placeholder-button"
+          data-target="zotero-prefpane-__addonRef__-localTextPromptTemplate"
+          data-token="{{targetLanguage}}"
+        >
+          {{targetLanguage}}
+        </button>
+        <button
+          class="__addonRef__-placeholder-button"
+          data-target="zotero-prefpane-__addonRef__-localTextPromptTemplate"
+          data-token="{{sourceLanguage}}"
+        >
+          {{sourceLanguage}}
+        </button>
+        <button
+          class="__addonRef__-placeholder-button"
+          data-target="zotero-prefpane-__addonRef__-localTextPromptTemplate"
+          data-token="{{text}}"
+        >
+          {{text}}
+        </button>
+      </hbox>
+      <button
+        id="zotero-prefpane-__addonRef__-reset-localTextPromptTemplate"
+        data-l10n-id="pref-local-text-prompt-reset"
+      ></button>
+    </hbox>
+    <description
+      data-l10n-id="pref-local-prompt-placeholders"
+      style="margin-top: 6px; opacity: 0.75; font-size: 0.88em"
+    />
+  </groupbox>
+
+  <groupbox style="padding: 12px">
+    <label>
+      <html:h2
+        data-l10n-id="pref-about"
+        style="margin: 0 0 10px 0; font-weight: 600"
+      ></html:h2>
+    </label>
     <label
       data-l10n-id="pref-about-version"
       data-l10n-args='{"time": "__buildTime__","name": "__addonName__","version":"__buildVersion__"}'
+      style="margin-bottom: 6px"
     ></label>
     <hbox align="center">
       <label
         data-l10n-id="pref-about-feedback"
         is="zotero-text-link"
         class="zotero-text-link"
-        href="https://github.com/your-github-user/zotero-pdf2zh-bilingual"
-        style="margin-right: 4px"
+        href="https://github.com/hanbinhsh/zotero-pdf2zh-bilingual/issues"
+        style="margin-right: 12px"
       ></label>
       <label
         data-l10n-id="pref-about-docs"
         is="zotero-text-link"
         class="zotero-text-link"
-        href="https://github.com/your-github-user/zotero-pdf2zh-bilingual"
+        href="https://github.com/hanbinhsh/zotero-pdf2zh-bilingual#readme"
       ></label>
     </hbox>
   </groupbox>

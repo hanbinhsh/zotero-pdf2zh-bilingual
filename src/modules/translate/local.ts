@@ -9,7 +9,9 @@ function logLocal(message: string, details?: unknown) {
   const prefix = `[local] ${message}`;
   try {
     ztoolkit.log(prefix, details ?? "");
-  } catch {}
+  } catch {
+    // ignore logging error
+  }
   try {
     const serialized =
       details === undefined
@@ -18,7 +20,9 @@ function logLocal(message: string, details?: unknown) {
           ? details
           : JSON.stringify(details);
     Zotero.debug(serialized ? `${prefix} ${serialized}` : prefix);
-  } catch {}
+  } catch {
+    // ignore debug error
+  }
   try {
     const serialized =
       details === undefined
@@ -29,19 +33,15 @@ function logLocal(message: string, details?: unknown) {
     Services.console.logStringMessage(
       serialized ? `${prefix} ${serialized}` : prefix,
     );
-  } catch {}
+  } catch {
+    // ignore console error
+  }
 }
 
 function normalizeUrl(input: string) {
-  return String(input || "").trim().replace(/\/+$/, "");
-}
-
-function normalizePdfMathBackendUrl(input: string) {
-  const normalized = normalizeUrl(input);
-  if (!normalized) {
-    return "";
-  }
-  return /\/v1$/i.test(normalized) ? normalized : `${normalized}/v1`;
+  return String(input || "")
+    .trim()
+    .replace(/\/+$/, "");
 }
 
 function normalizeOpenAICompatibleBaseUrl(input: string) {
@@ -83,21 +83,25 @@ function detectLanguage(text: string) {
 function normalizeAttachmentText(text: string) {
   return String(text || "")
     .replace(/\r\n/g, "\n")
-    .replace(/\u0000/g, "")
+    .split("\0")
+    .join("")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
 
 function buildPdfMathPromptTemplate(
   rawTemplate: string,
-  taskData: TranslationTaskData,
-  sourceLanguage: string,
+  _taskData: TranslationTaskData,
+  _sourceLanguage: string,
 ) {
   const normalized = String(rawTemplate || "").trim();
+  const defaultTemplate =
+    "You are a professional academic translator. Translate the following markdown source text from {{sourceLanguage}} to {{targetLanguage}}. Keep formula notation {v*} unchanged. Only output the translated text, without JSON, explanations, or code fences.\n\nSource Text: {{text}}\n\nTranslated Text:";
+
   const effectiveTemplate =
     !normalized ||
-    /Translate the JSON blocks into|translatedText|\"blocks\"/i.test(normalized)
-      ? "You are a professional academic translator. Translate the following markdown source text from {{sourceLanguage}} to {{targetLanguage}}. Keep formula notation {v*} unchanged. Only output the translated text, without JSON, explanations, or code fences.\n\nSource Text: {{text}}\n\nTranslated Text:"
+    /Translate the JSON blocks into|translatedText|"blocks"/i.test(normalized)
+      ? defaultTemplate
       : normalized;
 
   return effectiveTemplate
@@ -109,23 +113,33 @@ function buildPdfMathPromptTemplate(
 }
 
 function isAbsolutePath(input: string) {
-  return /^[A-Za-z]:[\\/]/.test(input) || input.startsWith("\\\\") || input.startsWith("/");
+  return (
+    /^[A-Za-z]:[\\/]/.test(input) ||
+    input.startsWith("\\\\") ||
+    input.startsWith("/")
+  );
 }
 
 function getAddonBaseDir() {
   try {
-    const spec = String((globalThis as any).rootURI || rootURI || "");
+    const spec = String(
+      (globalThis as any).rootURI || (addon as any)?.rootURI || "",
+    );
     if (!spec) {
       return "";
     }
     const nsIFileURL = (Components.interfaces as any).nsIFileURL;
     if (spec.startsWith("jar:")) {
       const fileSpec = spec.slice(4).split("!")[0];
-      const fileURL = (Services.io.newURI(fileSpec) as any).QueryInterface(nsIFileURL) as any;
+      const fileURL = (Services.io.newURI(fileSpec) as any).QueryInterface(
+        nsIFileURL,
+      ) as any;
       return PathUtils.parent(fileURL.file.path);
     }
     if (spec.startsWith("file:")) {
-      const fileURL = (Services.io.newURI(spec) as any).QueryInterface(nsIFileURL) as any;
+      const fileURL = (Services.io.newURI(spec) as any).QueryInterface(
+        nsIFileURL,
+      ) as any;
       const path = fileURL.file.path.replace(/[\\/]+$/, "");
       if (/[\\/](addon|content)$/i.test(path)) {
         return PathUtils.parent(path);
@@ -139,12 +153,14 @@ function getAddonBaseDir() {
 }
 
 export function resolveLocalPythonPath(rawInput?: string) {
-  const raw = String(
+  let raw = String(
     rawInput ?? ((getPref as any)("localPdfMathTranslatePythonPath") || ""),
   ).trim();
   if (!raw) {
     return "";
   }
+  // Remove wrapping quotes if user pasted path with quotes
+  raw = raw.replace(/^["']|["']$/g, "").trim();
   if (isAbsolutePath(raw)) {
     return raw;
   }
@@ -163,25 +179,6 @@ function getDirectPythonConfig() {
     transport: "python",
     pythonPath,
   };
-}
-
-function explainPdfMathBackendError(
-  status: number,
-  statusText: string,
-  responseText: string,
-) {
-  const raw = `${status} ${statusText} ${String(responseText || "").trim()}`.trim();
-  if (
-    /DisabledBackend|_get_task_meta_for|result_backend|CELERY_RESULT|redis/i.test(
-      raw,
-    )
-  ) {
-    return (
-      "PDFMathTranslate backend status failed because the Celery result backend is not enabled. " +
-      "Please make sure the Flask process and the worker are both using Redis, and that the running pdf2zh package includes a backend.py with result_backend configured."
-    );
-  }
-  return `PDFMathTranslate backend request failed: ${raw}`.trim();
 }
 
 function buildPdfMathTranslateConfig() {
@@ -247,7 +244,9 @@ async function composeSideBySideDualPdf(inputBytes: Uint8Array) {
       const outPage = outputPdf.addPage([pageWidth, pageHeight]);
       const topIsOriginal = dualMode === "uodt";
       const topEmbedded = topIsOriginal ? embeddedOriginal : embeddedTranslated;
-      const bottomEmbedded = topIsOriginal ? embeddedTranslated : embeddedOriginal;
+      const bottomEmbedded = topIsOriginal
+        ? embeddedTranslated
+        : embeddedOriginal;
       const topSize = topIsOriginal ? originalSize : translatedSize;
       const bottomSize = topIsOriginal ? translatedSize : originalSize;
 
@@ -268,7 +267,9 @@ async function composeSideBySideDualPdf(inputBytes: Uint8Array) {
 
     const leftIsOriginal = dualMode !== "ltro";
     const leftEmbedded = leftIsOriginal ? embeddedOriginal : embeddedTranslated;
-    const rightEmbedded = leftIsOriginal ? embeddedTranslated : embeddedOriginal;
+    const rightEmbedded = leftIsOriginal
+      ? embeddedTranslated
+      : embeddedOriginal;
     const leftSize = leftIsOriginal ? originalSize : translatedSize;
     const rightSize = leftIsOriginal ? translatedSize : originalSize;
     const pageWidth = leftSize.width + rightSize.width;
@@ -291,6 +292,7 @@ async function composeSideBySideDualPdf(inputBytes: Uint8Array) {
 
   return new Uint8Array(await outputPdf.save());
 }
+
 function buildLocalOutputName(
   taskData: TranslationTaskData,
   engineSuffix: string,
@@ -333,49 +335,11 @@ async function importResultAttachment(
 
   try {
     await IOUtils.remove(tempPath);
-  } catch {}
+  } catch {
+    // ignore cleanup error
+  }
 
   return resultAttachment;
-}
-
-function createMultipartFormData(
-  fileBytes: Uint8Array,
-  filename: string,
-  payload: Record<string, unknown>,
-) {
-  const mainWindow = Zotero.getMainWindow?.() as Window & {
-    FormData?: typeof FormData;
-    Blob?: typeof Blob;
-    File?: typeof File;
-  };
-  const FormDataCtor =
-    mainWindow?.FormData || (globalThis as any).FormData || undefined;
-  const BlobCtor = mainWindow?.Blob || (globalThis as any).Blob || undefined;
-  const FileCtor = mainWindow?.File || (globalThis as any).File || undefined;
-
-  if (!FormDataCtor) {
-    throw new Error("FormData is not available in the current Zotero runtime.");
-  }
-
-  const formData = new FormDataCtor();
-  if (FileCtor) {
-    formData.append(
-      "file",
-      new FileCtor([fileBytes], filename, {
-        type: "application/pdf",
-      }),
-    );
-  } else if (BlobCtor) {
-    formData.append(
-      "file",
-      new BlobCtor([fileBytes], { type: "application/pdf" }),
-      filename,
-    );
-  } else {
-    throw new Error("File/Blob is not available in the current Zotero runtime.");
-  }
-  formData.append("data", JSON.stringify(payload));
-  return formData;
 }
 
 function runExternalProcess(executablePath: string, args: string[]) {
@@ -383,28 +347,24 @@ function runExternalProcess(executablePath: string, args: string[]) {
     try {
       const classes = Components.classes as any;
       const interfaces = Components.interfaces as any;
-      const file = classes[
-        "@mozilla.org/file/local;1"
-      ].createInstance(interfaces.nsIFile);
+      const file = classes["@mozilla.org/file/local;1"].createInstance(
+        interfaces.nsIFile,
+      );
       file.initWithPath(executablePath);
       if (!file.exists()) {
         reject(new Error(`Executable not found: ${executablePath}`));
         return;
       }
-      const process = classes[
-        "@mozilla.org/process/util;1"
-      ].createInstance(interfaces.nsIProcess);
+      const process = classes["@mozilla.org/process/util;1"].createInstance(
+        interfaces.nsIProcess,
+      );
       process.init(file);
       process.runwAsync(
         args,
         args.length,
         {
-          observe: (_subject: unknown, topic: string) => {
-            if (topic === "process-finished") {
-              resolve(process.exitValue);
-            } else {
-              resolve(process.exitValue);
-            }
+          observe: (_subject: unknown, _topic: string) => {
+            resolve(process.exitValue);
           },
         } as any,
         false,
@@ -426,9 +386,6 @@ async function translateWithDirectPython(
   config: NonNullable<ReturnType<typeof buildPdfMathTranslateConfig>>,
 ) {
   const direct = getDirectPythonConfig();
-  if (direct.transport !== "python") {
-    return null;
-  }
   if (!direct.pythonPath) {
     throw new Error(
       "Direct Python mode is enabled but no Python executable path is configured.",
@@ -436,7 +393,9 @@ async function translateWithDirectPython(
   }
   const pythonExists = await IOUtils.exists(direct.pythonPath);
   if (!pythonExists) {
-    throw new Error(`Configured Python executable was not found: ${direct.pythonPath}`);
+    throw new Error(
+      `Configured Python executable was not found: ${direct.pythonPath}`,
+    );
   }
 
   const workDir = PathUtils.join(
@@ -444,30 +403,32 @@ async function translateWithDirectPython(
     `zotero-pdf2zh-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
   );
   await IOUtils.makeDirectory(workDir);
-  const payloadPath = PathUtils.join(workDir, "payload.json");
-  const resultPath = PathUtils.join(workDir, "result.json");
-  const scriptPath = PathUtils.join(workDir, "runner.py");
-  const outputDir = PathUtils.join(workDir, "out");
-  await IOUtils.makeDirectory(outputDir);
-  await IOUtils.makeDirectory(PathUtils.join(workDir, "cache"));
 
-  const payload = {
-    inputPath: taskData.attachmentPath,
-    outputDir,
-    langIn: sourceLanguage,
-    langOut: mapLanguageForPdf2zh(taskData.targetLanguage),
-    service: config.service,
-    thread,
-    envs: config.envs,
-    prompt: promptText || "",
-    ignoreCache: false,
-    debug: enableDebug,
-    configPath: PathUtils.join(workDir, "pdf2zh-config.json"),
-    cacheDir: PathUtils.join(workDir, "cache"),
-  };
-  await IOUtils.writeUTF8(payloadPath, JSON.stringify(payload, null, 2));
+  try {
+    const payloadPath = PathUtils.join(workDir, "payload.json");
+    const resultPath = PathUtils.join(workDir, "result.json");
+    const scriptPath = PathUtils.join(workDir, "runner.py");
+    const outputDir = PathUtils.join(workDir, "out");
+    await IOUtils.makeDirectory(outputDir);
+    await IOUtils.makeDirectory(PathUtils.join(workDir, "cache"));
 
-  const runnerSource = `
+    const payload = {
+      inputPath: taskData.attachmentPath,
+      outputDir,
+      langIn: sourceLanguage,
+      langOut: mapLanguageForPdf2zh(taskData.targetLanguage),
+      service: config.service,
+      thread,
+      envs: config.envs,
+      prompt: promptText || "",
+      ignoreCache: false,
+      debug: enableDebug,
+      configPath: PathUtils.join(workDir, "pdf2zh-config.json"),
+      cacheDir: PathUtils.join(workDir, "cache"),
+    };
+    await IOUtils.writeUTF8(payloadPath, JSON.stringify(payload, null, 2));
+
+    const runnerSource = `
 import json
 import os
 import sys
@@ -523,74 +484,87 @@ if __name__ == "__main__":
         }, ensure_ascii=False), encoding="utf-8")
         raise
 `.trim();
-  await IOUtils.writeUTF8(scriptPath, runnerSource);
+    await IOUtils.writeUTF8(scriptPath, runnerSource);
 
-  updateTaskInList(taskData.attachmentId, {
-    status: "translating",
-    stage: "TranslateParagraphs",
-    progress: 10,
-    debugInfo: `Running local python pdf2zh.translate_stream via ${direct.pythonPath}` ,
-  });
-  logLocal("Running local python pdf2zh", {
-    attachmentId: taskData.attachmentId,
-    pythonPath: direct.pythonPath,
-    service: config.service,
-    outputDir,
-  });
+    updateTaskInList(taskData.attachmentId, {
+      status: "translating",
+      stage: "TranslateParagraphs",
+      progress: 10,
+      debugInfo: `Running local python pdf2zh.translate_stream via ${direct.pythonPath}`,
+    });
+    logLocal("Running local python pdf2zh", {
+      attachmentId: taskData.attachmentId,
+      pythonPath: direct.pythonPath,
+      service: config.service,
+      outputDir,
+    });
 
-  const exitCode = await runExternalProcess(direct.pythonPath, [
-    "-X",
-    "utf8",
-    scriptPath,
-    payloadPath,
-    resultPath,
-  ]);
+    const exitCode = await runExternalProcess(direct.pythonPath, [
+      "-X",
+      "utf8",
+      scriptPath,
+      payloadPath,
+      resultPath,
+    ]);
 
-  if (!(await IOUtils.exists(resultPath))) {
-    throw new Error(
-      `Direct Python pdf2zh finished with exit code ${exitCode}, but no result manifest was produced.`,
+    if (!(await IOUtils.exists(resultPath))) {
+      throw new Error(
+        `Direct Python pdf2zh finished with exit code ${exitCode}, but no result manifest was produced.`,
+      );
+    }
+
+    const resultJson = JSON.parse(await IOUtils.readUTF8(resultPath));
+    if (exitCode !== 0 || resultJson?.error) {
+      throw new Error(
+        `Direct Python pdf2zh failed: ${resultJson?.error || `exit code ${exitCode}`}\n${resultJson?.traceback || ""}`.trim(),
+      );
+    }
+
+    const format = taskData.translateMode === "translation" ? "mono" : "dual";
+    const outputPath = String(resultJson?.[format] || "").trim();
+    if (!outputPath || !(await IOUtils.exists(outputPath))) {
+      throw new Error(
+        `Direct Python pdf2zh did not produce expected ${format} PDF.`,
+      );
+    }
+
+    let resultBytes = new Uint8Array(await IOUtils.read(outputPath));
+    if (format === "dual" && getLocalBilingualLayout() === "side-by-side") {
+      resultBytes = await composeSideBySideDualPdf(resultBytes);
+    }
+    const outputName = buildLocalOutputName(taskData, "pdf2zh-direct");
+    const resultAttachment = await importResultAttachment(
+      taskData,
+      parentItem,
+      attachment,
+      resultBytes,
+      outputName,
     );
+
+    updateTaskInList(taskData.attachmentId, {
+      status: "success",
+      stage: "completed",
+      progress: 100,
+      resultAttachmentId: resultAttachment.id,
+      debugInfo: `Direct Python pdf2zh finished via ${config.service}, layout=${getLocalBilingualLayout()}, bytes=${resultBytes.length}`,
+    });
+
+    if (getPref("autoOpenPDF")) {
+      Zotero.Reader.open(resultAttachment.id);
+    }
+
+    return resultAttachment;
+  } finally {
+    if (!enableDebug) {
+      try {
+        if (await IOUtils.exists(workDir)) {
+          await IOUtils.remove(workDir);
+        }
+      } catch (cleanupError) {
+        logLocal("Failed to clean up temporary work directory", cleanupError);
+      }
+    }
   }
-
-  const resultJson = JSON.parse(await IOUtils.readUTF8(resultPath));
-  if (exitCode !== 0 || resultJson?.error) {
-    throw new Error(
-      `Direct Python pdf2zh failed: ${resultJson?.error || `exit code ${exitCode}`}\n${resultJson?.traceback || ""}`.trim(),
-    );
-  }
-
-  const format = taskData.translateMode === "translation" ? "mono" : "dual";
-  const outputPath = String(resultJson?.[format] || "").trim();
-  if (!outputPath || !(await IOUtils.exists(outputPath))) {
-    throw new Error(`Direct Python pdf2zh did not produce expected ${format} PDF.`);
-  }
-
-  let resultBytes = new Uint8Array(await IOUtils.read(outputPath));
-  if (format === "dual" && getLocalBilingualLayout() === "side-by-side") {
-    resultBytes = await composeSideBySideDualPdf(resultBytes);
-  }
-  const outputName = buildLocalOutputName(taskData, "pdf2zh-direct");
-  const resultAttachment = await importResultAttachment(
-    taskData,
-    parentItem,
-    attachment,
-    resultBytes,
-    outputName,
-  );
-
-  updateTaskInList(taskData.attachmentId, {
-    status: "success",
-    stage: "completed",
-    progress: 100,
-    resultAttachmentId: resultAttachment.id,
-    debugInfo: `Direct Python pdf2zh finished via ${config.service}, layout=${getLocalBilingualLayout()}, bytes=${resultBytes.length}`,
-  });
-
-  if (getPref("autoOpenPDF")) {
-    Zotero.Reader.open(resultAttachment.id);
-  }
-
-  return resultAttachment;
 }
 
 export async function translatePDFLocally(
@@ -602,7 +576,9 @@ export async function translatePDFLocally(
     throw new Error("Attachment not found.");
   }
 
-  const attachmentText = normalizeAttachmentText(await attachment.attachmentText);
+  const attachmentText = normalizeAttachmentText(
+    await attachment.attachmentText,
+  );
   const config = buildPdfMathTranslateConfig();
   if (!config) {
     throw new Error(
@@ -659,16 +635,3 @@ export async function translatePDFLocally(
     config,
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

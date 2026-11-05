@@ -1,8 +1,8 @@
 import { getString } from "../utils/locale";
 
-const ITEM_MENU_ID = "zotero-itemmenu-babeldoc-translate";
-const VIEW_MENU_SEPARATOR_ID = "zotero-menuview-babeldoc-translate-separator";
-const VIEW_MENU_ID = "zotero-menuview-babeldoc-translate-menuitem";
+const ITEM_MENU_ID = "zotero-itemmenu-pdf2zh-translate";
+const VIEW_MENU_SEPARATOR_ID = "zotero-menuview-pdf2zh-translate-separator";
+const VIEW_MENU_ID = "zotero-menuview-pdf2zh-translate-menuitem";
 
 function getMenuIcon() {
   return `chrome://${addon.data.config.addonRef}/content/icons/favicon@16x16.png`;
@@ -65,9 +65,14 @@ export function registerWindowMenu(win?: Window) {
   menuitem.setAttribute("label", getString("menuView-tasks"));
   menuitem.setAttribute("class", "menuitem-iconic");
   menuitem.setAttribute("image", getMenuIcon());
-  menuitem.addEventListener("command", () => addon.hooks.onViewTranslationTasks());
+  menuitem.addEventListener("command", () =>
+    addon.hooks.onViewTranslationTasks(),
+  );
   popup.appendChild(menuitem);
-  ztoolkit.log("registerWindowMenu: view menu registered", popup.id || popup.tagName);
+  ztoolkit.log(
+    "registerWindowMenu: view menu registered",
+    popup.id || popup.tagName,
+  );
 }
 
 export function unregisterMenu(doc?: Document | null) {
@@ -75,6 +80,8 @@ export function unregisterMenu(doc?: Document | null) {
     return;
   }
   doc.getElementById(ITEM_MENU_ID)?.remove();
+  // Also clean up legacy ID if present
+  doc.getElementById("zotero-itemmenu-babeldoc-translate")?.remove();
 }
 
 export function unregisterWindowMenu(doc?: Document | null) {
@@ -83,6 +90,9 @@ export function unregisterWindowMenu(doc?: Document | null) {
   }
   doc.getElementById(VIEW_MENU_SEPARATOR_ID)?.remove();
   doc.getElementById(VIEW_MENU_ID)?.remove();
+  // Also clean up legacy IDs if present
+  doc.getElementById("zotero-menuview-babeldoc-translate-separator")?.remove();
+  doc.getElementById("zotero-menuview-babeldoc-translate-menuitem")?.remove();
 }
 
 function resolveDocument(win?: Window) {

@@ -7,13 +7,21 @@ import type { Language } from "../language/types";
 const DIALOG_EARLY_STYLE = `
 html, body {
   margin: 0 !important;
-  padding: 0 !important;
+  padding: 12px !important;
   overflow: hidden !important;
-  background: var(--material-background, #2f2f2f) !important;
-  color: var(--material-foreground, #f5f5f5) !important;
+  background: var(--material-background, -moz-Dialog) !important;
+  color: var(--material-text, -moz-DialogText) !important;
+  font: message-box;
 }
 body > vbox {
-  background: var(--material-background, #2f2f2f) !important;
+  background: transparent !important;
+}
+select {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--material-border, #ccc);
+  background: var(--material-input-background, #fff);
+  color: var(--material-text, #333);
 }
 `;
 
@@ -57,7 +65,9 @@ export async function showConfirmationDialog(): Promise<{
 }> {
   const dialogData: { [key: string | number]: any } = {
     targetLanguage: getPref("targetLanguage"),
-    sourceLanguage: String((getPref as any)("localPdfMathTranslateSourceLanguage") || "auto"),
+    sourceLanguage: String(
+      (getPref as any)("localPdfMathTranslateSourceLanguage") || "auto",
+    ),
     translateMode: getPref("translateMode"),
   };
 
@@ -76,7 +86,10 @@ export async function showConfirmationDialog(): Promise<{
       },
       styles: {
         width: "300px",
-        margin: "0 auto",
+        margin: "0 auto 10px auto",
+        fontSize: "1.2em",
+        fontWeight: "600",
+        textAlign: "center",
       },
     })
     .addCell(2, 0, {
@@ -86,8 +99,10 @@ export async function showConfirmationDialog(): Promise<{
         innerHTML: getString("confirm-target-language"),
       },
       styles: {
-        width: "220px",
-        margin: "0 auto",
+        width: "240px",
+        margin: "4px auto 2px auto",
+        fontSize: "0.95em",
+        fontWeight: "500",
       },
     })
     .addCell(
@@ -108,9 +123,9 @@ export async function showConfirmationDialog(): Promise<{
           },
         })),
         styles: {
-          width: "220px",
-          height: "30px",
-          margin: "3px auto",
+          width: "240px",
+          height: "32px",
+          margin: "2px auto 8px auto",
         },
       },
       false,
@@ -122,8 +137,10 @@ export async function showConfirmationDialog(): Promise<{
         innerHTML: getString("confirm-source-language"),
       },
       styles: {
-        width: "220px",
-        margin: "0 auto",
+        width: "240px",
+        margin: "4px auto 2px auto",
+        fontSize: "0.95em",
+        fontWeight: "500",
       },
     })
     .addCell(
@@ -136,17 +153,19 @@ export async function showConfirmationDialog(): Promise<{
           "data-bind": "sourceLanguage",
           "data-prop": "value",
         },
-        children: getSourceLanguageOptions(Zotero.locale as Language).map((lang) => ({
-          tag: "option",
-          properties: {
-            value: lang.value,
-            innerHTML: lang.label,
-          },
-        })),
+        children: getSourceLanguageOptions(Zotero.locale as Language).map(
+          (lang) => ({
+            tag: "option",
+            properties: {
+              value: lang.value,
+              innerHTML: lang.label,
+            },
+          }),
+        ),
         styles: {
-          width: "220px",
-          height: "30px",
-          margin: "3px auto",
+          width: "240px",
+          height: "32px",
+          margin: "2px auto 8px auto",
         },
       },
       false,
@@ -158,8 +177,10 @@ export async function showConfirmationDialog(): Promise<{
         innerHTML: getString("confirm-translate-mode"),
       },
       styles: {
-        width: "220px",
-        margin: "0 auto",
+        width: "240px",
+        margin: "4px auto 2px auto",
+        fontSize: "0.95em",
+        fontWeight: "500",
       },
     })
     .addCell(
@@ -180,9 +201,9 @@ export async function showConfirmationDialog(): Promise<{
           },
         })),
         styles: {
-          width: "220px",
-          height: "30px",
-          margin: "3px auto",
+          width: "240px",
+          height: "32px",
+          margin: "2px auto 14px auto",
         },
       },
       false,
@@ -194,12 +215,12 @@ export async function showConfirmationDialog(): Promise<{
   centerDialogRows(dialogHelper as any);
 
   dialogHelper.open(getString("confirm-title"), {
-      width: 380,
-      height: 330,
-      centerscreen: true,
-      resizable: false,
-      fitContent: false,
-    });
+    width: 400,
+    height: 350,
+    centerscreen: true,
+    resizable: false,
+    fitContent: false,
+  });
 
   addon.data.dialog = dialogHelper;
   await dialogData.unloadLock.promise;
